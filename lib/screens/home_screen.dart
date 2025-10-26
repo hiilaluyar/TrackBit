@@ -65,6 +65,8 @@ class _HomeTab extends StatelessWidget {
     final authService = Provider.of<AuthService>(context);
     final userId = authService.currentUser!.uid;
 
+    print('🔍 Ana sayfa açıldı, userId: $userId'); // DEBUG
+
     return Scaffold(
       appBar: AppBar(
         title: Text('TrackBit 🔥'),
@@ -78,10 +80,57 @@ class _HomeTab extends StatelessWidget {
       body: StreamBuilder<List<StreakModel>>(
         stream: _databaseService.getUserStreaks(userId),
         builder: (context, snapshot) {
+          // DEBUG BİLGİLERİ
+          print('📱 StreamBuilder durumu: ${snapshot.connectionState}');
+          print('📱 Hata var mı: ${snapshot.hasError}');
+          if (snapshot.hasError) {
+            print('❌ Hata detayı: ${snapshot.error}');
+          }
+          print('📱 Veri var mı: ${snapshot.hasData}');
+          if (snapshot.hasData) {
+            print('📱 Streak sayısı: ${snapshot.data!.length}');
+          }
+
+          // BAĞLANTI BEKLENİYOR
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
+          // HATA OLUŞTU
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text(
+                    'Bir hata oluştu',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      '${snapshot.error}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Sayfayı yenile
+                      (context as Element).markNeedsBuild();
+                    },
+                    child: Text('Yeniden Dene'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // VERİ YOK VEYA BOŞ
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Column(
@@ -98,12 +147,19 @@ class _HomeTab extends StatelessWidget {
                     'İlk streak\'ini ekleyerek başla!',
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
+                  SizedBox(height: 24),
+                  Text(
+                    'UserID: ${userId.substring(0, 8)}...',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  ),
                 ],
               ),
             );
           }
 
+          // VERİ BAŞARIYLA GELDİ
           final streaks = snapshot.data!;
+          print('✅ ${streaks.length} streak gösteriliyor'); // DEBUG
 
           return ListView.builder(
             padding: EdgeInsets.only(top: 16, bottom: 80),
@@ -223,7 +279,7 @@ class _HomeTab extends StatelessWidget {
               child: Text('İptal'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (nameController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Lütfen bir isim girin')),
@@ -231,19 +287,28 @@ class _HomeTab extends StatelessWidget {
                   return;
                 }
 
-                _databaseService.addStreak(
-                  userId: userId,
-                  name: nameController.text.trim(),
-                  emoji: selectedEmoji,
-                );
+                try {
+                  await _databaseService.addStreak(
+                    userId: userId,
+                    name: nameController.text.trim(),
+                    emoji: selectedEmoji,
+                  );
 
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Yeni streak eklendi! 🎉'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Yeni streak eklendi! 🎉'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Hata: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               child: Text('Ekle'),
             ),
