@@ -277,13 +277,23 @@ class DatabaseService {
       if (!doc.exists) return;
 
       final challenge = ChallengeModel.fromMap(doc.data()!);
+
+      // Bugün zaten işaretlenmiş mi kontrol et
+      if (challenge.isCheckedTodayByUser(userId)) {
+        print('⚠️ Bu challenge bugün zaten işaretlenmiş!');
+        throw Exception('Bugün zaten işaretledin!');
+      }
+
       final currentScore = challenge.participantScores[userId] ?? 0;
+      final now = DateTime.now();
 
       await _firestore.collection('challenges').doc(challengeId).update({
         'participantScores.$userId': currentScore + 1,
+        'lastChecked.$userId': now
+            .toIso8601String(), // Son işaretleme zamanını kaydet
       });
 
-      print('✅ Challenge score güncellendi');
+      print('✅ Challenge score güncellendi: ${currentScore + 1}');
     } catch (e) {
       print('❌ Challenge score güncelleme hatası: $e');
       rethrow;

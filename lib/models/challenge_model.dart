@@ -8,6 +8,7 @@ class ChallengeModel {
   final String creatorName;
   final List<String> participantIds;
   final Map<String, int> participantScores; // userId: streak count
+  final Map<String, String> lastChecked; // userId: ISO date - SON EKLENDİ!
   final DateTime startDate;
   final DateTime endDate;
   final String? winnerId;
@@ -22,6 +23,7 @@ class ChallengeModel {
     required this.creatorName,
     required this.participantIds,
     required this.participantScores,
+    this.lastChecked = const {}, // YENİ!
     required this.startDate,
     required this.endDate,
     this.winnerId,
@@ -38,6 +40,7 @@ class ChallengeModel {
       'creatorName': creatorName,
       'participantIds': participantIds,
       'participantScores': participantScores,
+      'lastChecked': lastChecked, // YENİ!
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'winnerId': winnerId,
@@ -55,6 +58,7 @@ class ChallengeModel {
       creatorName: map['creatorName'] ?? '',
       participantIds: List<String>.from(map['participantIds'] ?? []),
       participantScores: Map<String, int>.from(map['participantScores'] ?? {}),
+      lastChecked: Map<String, String>.from(map['lastChecked'] ?? {}), // YENİ!
       startDate: map['startDate'] != null
           ? DateTime.parse(map['startDate'])
           : DateTime.now(),
@@ -81,5 +85,17 @@ class ChallengeModel {
   String? getWinnerName(Map<String, String> userNames) {
     if (winnerId == null) return null;
     return userNames[winnerId];
+  }
+
+  // Kullanıcı bugün işaretledi mi kontrol et - YENİ!
+  bool isCheckedTodayByUser(String userId) {
+    if (!lastChecked.containsKey(userId)) return false;
+
+    final lastCheckDate = DateTime.parse(lastChecked[userId]!);
+    final now = DateTime.now();
+
+    return lastCheckDate.year == now.year &&
+        lastCheckDate.month == now.month &&
+        lastCheckDate.day == now.day;
   }
 }

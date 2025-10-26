@@ -147,6 +147,9 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     final isExpired = challenge.isExpired;
     final myScore = challenge.participantScores[userId] ?? 0;
 
+    // DATABASE'DEN kontrol et - bugün işaretlenmiş mi?
+    final isCheckedToday = challenge.isCheckedTodayByUser(userId);
+
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -310,21 +313,47 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () async {
-                    await _databaseService.updateChallengeScore(
-                      challenge.id,
-                      userId,
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Bugün tamamladın! 🎉'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                  icon: Icon(Icons.check_circle),
-                  label: Text('Bugün Tamamladım'),
+                  onPressed: isCheckedToday
+                      ? null
+                      : () async {
+                          try {
+                            // Database'de kontrol ederek güncelle
+                            await _databaseService.updateChallengeScore(
+                              challenge.id,
+                              userId,
+                            );
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Bugün tamamladın! 🎉'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } catch (e) {
+                            // Eğer bugün zaten işaretlenmişse hata mesajı göster
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Bu challenge\'ı bugün zaten tamamladın!',
+                                ),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
+                        },
+                  icon: Icon(
+                    isCheckedToday ? Icons.check_circle : Icons.circle_outlined,
+                    size: 20,
+                  ),
+                  label: Text(
+                    isCheckedToday ? 'Bugün Tamamlandı! ✅' : 'Bugün Tamamladım',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: isCheckedToday
+                        ? Colors.green
+                        : Colors.blue,
+                    foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
