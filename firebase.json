@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"my-trackbit-app","appId":"1:978186080175:android:c0bd3a7210c454f779295a","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"my-trackbit-app","configurations":{"android":"1:978186080175:android:c0bd3a7210c454f779295a","web":"1:978186080175:web:1fd8e784929acc9679295a"}}}}}}

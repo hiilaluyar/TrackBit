@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "978186080175",
+    "project_id": "my-trackbit-app",
+    "storage_bucket": "my-trackbit-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978186080175:android:c0bd3a7210c454f779295a",
+        "android_client_info": {
+          "package_name": "com.rw.trackbit_proje"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAldTKGjXGI4gD8ktJ8UJeQ3dasfZWlxHg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
